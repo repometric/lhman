@@ -6,22 +6,31 @@ import (
 	"os"
 
 	"github.com/urfave/cli"
+	"github.com/repometric/lhman/catalog"
+	"encoding/json"
 )
 
-const APP_VERSION = "0.0.1-alpha"
+const APP_VERSION = "0.0.1"
 
 func main() {
 	app := cli.NewApp()
 
 	app.Version = APP_VERSION
-
+	app.Usage = "Linterhub Manager Core Component"
 	app.Commands = []cli.Command{
 		{
 			Name:    "catalog",
 			Aliases: []string{"c"},
 			Usage:   "This strategy generates list of engines using filters or specific keys and propose recommendations.",
 			Action: func(c *cli.Context) error {
-				fmt.Println("TODO")
+				var engines []catalog.Meta
+
+				for _, engine := range catalog.Get() {
+					engines = append(engines, engine.Meta);
+				}
+
+				res, _ := json.MarshalIndent(engines, "", "    ");
+				fmt.Println(string(res))
 				return nil
 			},
 			Flags: []cli.Flag{
