@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
-package="github.com/repometric/lhman"
-package_split=(${package//\// })
-package_name=${package_split[-1]}
+package_name="lhman"
 
 platforms=("windows/amd64" "windows/386" "darwin/amd64" "darwin/386" "linux/386" "linux/amd64")
 
@@ -18,7 +16,7 @@ do
         filename+='.exe'
     fi
 
-    env GOOS=$GOOS GOARCH=$GOARCH go build -o bin/$output_name/$filename $package
+    env GOOS=$GOOS GOARCH=$GOARCH go build -o bin/$output_name/$filename
     if [ $? -ne 0 ]; then
         echo 'An error has occurred! Aborting the script execution...'
         exit 1

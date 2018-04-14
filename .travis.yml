@@ -1,6 +1,11 @@
 language: go
 go:
   - "1.10"
+git:
+  submodules: false
+
+before_install:
+  - git submodule update --init
 
 script:
-  - build.sh
+  - ./build.sh
