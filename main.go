@@ -7,11 +7,12 @@ import (
 	"os"
 
 	"github.com/repometric/lhman/catalog"
+	"github.com/repometric/lhman/install"
 	"github.com/urfave/cli"
 )
 
 // AppVersion is the version of lhman
-const AppVersion = "0.0.3"
+const AppVersion = "0.1.0"
 
 func main() {
 	app := cli.NewApp()
@@ -75,15 +76,31 @@ func main() {
 			Aliases: []string{"i"},
 			Usage:   "The install strategy allows to install the engine and its dependencies.",
 			Action: func(c *cli.Context) error {
-				fmt.Println("TODO")
+				var context = install.Context{
+					Version:     c.StringSlice("version"),
+					Project:     c.String("project"),
+					Environment: c.String("environment"),
+				}
+
+				for _, engineName := range c.StringSlice("engine") {
+					for _, engine := range catalog.Get() {
+						if engine.Meta.Name == engineName || engine.Meta.ID == engineName {
+							context.Engine = append(context.Engine)
+						}
+					}
+				}
+
+				res, _ := json.MarshalIndent(install.Run(context), "", "    ")
+				fmt.Println(string(res))
+
 				return nil
 			},
 			Flags: []cli.Flag{
-				cli.StringFlag{
+				cli.StringSliceFlag{
 					Name:  "engine,e",
 					Usage: "Engine name to install",
 				},
-				cli.StringFlag{
+				cli.StringSliceFlag{
 					Name:  "version,v",
 					Usage: "Engine version (latest version by default)",
 				},
@@ -91,9 +108,10 @@ func main() {
 					Name:  "project,p",
 					Usage: "Project to associate with",
 				},
-				cli.StringFlag{ // convert to enum
+				cli.StringFlag{
 					Name:  "environment,env",
 					Usage: "The way how to install engine. Allowed values: local, global, container. local is used by default.",
+					Value: "local",
 				},
 			},
 		},
