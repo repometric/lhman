@@ -1,21 +1,22 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 
-	"github.com/urfave/cli"
 	"github.com/repometric/lhman/catalog"
-	"encoding/json"
+	"github.com/urfave/cli"
 )
 
-const APP_VERSION = "0.0.1"
+// AppVersion is the version of lhman
+const AppVersion = "0.0.3"
 
 func main() {
 	app := cli.NewApp()
 
-	app.Version = APP_VERSION
+	app.Version = AppVersion
 	app.Usage = "Linterhub Manager Core Component"
 	app.Commands = []cli.Command{
 		{
@@ -23,42 +24,49 @@ func main() {
 			Aliases: []string{"c"},
 			Usage:   "This strategy generates list of engines using filters or specific keys and propose recommendations.",
 			Action: func(c *cli.Context) error {
-				var engines []catalog.Meta
 
-				for _, engine := range catalog.Get() {
-					engines = append(engines, engine.Meta);
+				var (
+					engine = c.StringSlice("engine")
+					//project = c.String("project")
+					res []byte
+				)
+
+				var stringInSlice = func(a string, list []string) bool {
+					for _, b := range list {
+						if b == a {
+							return true
+						}
+					}
+					return false
 				}
 
-				res, _ := json.MarshalIndent(engines, "", "    ");
+				if len(engine) > 0 {
+					engines := make([]catalog.Engine, 0)
+					for _, v := range catalog.Get() {
+						if stringInSlice(v.Meta.Name, engine) {
+							engines = append(engines, v)
+						}
+					}
+					res, _ = json.MarshalIndent(engines, "", "    ")
+				} else {
+					engines := make([]catalog.Meta, 0)
+					for _, e := range catalog.Get() {
+						engines = append(engines, e.Meta)
+					}
+					res, _ = json.MarshalIndent(engines, "", "    ")
+				}
+
 				fmt.Println(string(res))
 				return nil
 			},
 			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "filter,f",
-					Usage: "Filter results",
-				},
-				cli.StringFlag{
-					Name:  "keys,k",
-					Usage: "Show only specified keys",
-				},
-				cli.StringFlag{
+				cli.StringSliceFlag{
 					Name:  "engine,e",
 					Usage: "Engine name to return metadata, arguments and dependencies",
 				},
 				cli.StringFlag{
 					Name:  "project,p",
 					Usage: "Project path to return list of recommended for installing engines",
-				},
-			},
-			Subcommands: []cli.Command{
-				{
-					Name:  "bundle",
-					Usage: "Generate a bundle with metadata, arguments and dependencies for all engines. ",
-					Action: func(c *cli.Context) error {
-						fmt.Println("TODO")
-						return nil
-					},
 				},
 			},
 		},
