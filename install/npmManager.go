@@ -1,7 +1,6 @@
 package install
 
 import (
-	"bytes"
 	"os/exec"
 	"regexp"
 )
@@ -10,43 +9,29 @@ import (
 type NpmManager struct{}
 
 // Install function of NpmManager installs npm dependencies
-func (m NpmManager) Install(c Context, r Requirement) string {
+func (NpmManager) Install(context Context, requirement Requirement) string {
 	globalFlag := ""
-	if c.Environment == "global" {
+	if context.Environment == "global" {
 		globalFlag = "-g"
 	}
-	packageFlag := r.Package
-	if len(r.Version) > 0 {
-		packageFlag += "@" + r.Version
+	packageFlag := requirement.Package
+	if len(requirement.Version) > 0 {
+		packageFlag += "@" + requirement.Version
 	}
-	cmd := exec.Command(r.Manager, "install", globalFlag, packageFlag)
-	if len(c.Folder) > 0 {
-		cmd.Dir = c.Folder
-	}
+	_, err := Execute(context, requirement.Manager, globalFlag, packageFlag)
 
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	if err != nil {
-		return "npm manager crashed with: " + err.Error()
-	}
-
-	return string(stderr.Bytes())
+	return err
 }
 
 // IsInstalled function of NpmManager ckecks if npm dependency is installed
-func (m NpmManager) IsInstalled(c Context, r Requirement) bool {
+func (NpmManager) IsInstalled(context Context, requirement Requirement) bool {
 	globalFlag := ""
-	if c.Environment == "global" {
+	if context.Environment == "global" {
 		globalFlag = "-g"
 	}
-	cmd := exec.Command(r.Manager, "list", globalFlag)
-	if len(c.Folder) > 0 {
-		cmd.Dir = c.Folder
-	}
-	out, _ := cmd.Output()
-	reg, _ := regexp.Compile("\\s" + r.Package + "\\@" + r.Version)
-	return len(reg.FindStringIndex(string(out[:len(out)]))) != 0
+	out, _ := Execute(context, requirement.Manager, globalFlag)
+	reg, _ := regexp.Compile("\\s" + requirement.Package + "\\@" + requirement.Version)
+	return len(reg.FindStringIndex(out)) != 0
 }
 
 // InitManager function checks if the package manager is available
