@@ -13,7 +13,7 @@ func (m PlatformManager) Install(c Context, r Requirement) string {
 // IsInstalled function of PlatformManager ckecks global Requirements
 func (m PlatformManager) IsInstalled(c Context, r Requirement) bool {
 	_, lookErr := exec.LookPath(r.Package) // TODO: check version of package
-	return lookErr != nil
+	return lookErr == nil
 }
 
 // InitManager function checks if the package manager is available
