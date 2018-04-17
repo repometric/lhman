@@ -16,9 +16,9 @@ do
         filename+='.exe'
     fi
 
-    mkdir -p ./bin/$output_name/linterhub
-    cp -r ./linterhub/engine ./bin/$output_name/linterhub
-    env GOOS=$GOOS GOARCH=$GOARCH go build -o bin/$output_name/$filename
+    mkdir -p ./build/$output_name/linterhub
+    cp -r ./linterhub/engine ./build/$output_name/linterhub
+    env GOOS=$GOOS GOARCH=$GOARCH go build -o build/$output_name/$filename
     if [ $? -ne 0 ]; then
         echo 'An error has occurred! Aborting the script execution...'
         exit 1
