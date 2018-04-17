@@ -7,37 +7,47 @@ func initManagers() {
 	managers["npm"] = NpmManager{}
 }
 
-// Run function installs engines witg given Context
-func Run(c Context) []Result {
+// Run function installs engines with given Context
+func Run(context Context) []Result {
 	if len(managers) == 0 {
 		initManagers()
 	}
 	var results []Result
-	for _, engine := range c.Engine {
-		result := InitResult(c, engine)
-		var dependencyBranch = engine.Deps.Dependencies[0] // TODO
-		for index, dependency := range dependencyBranch {
-			requirement := InitRequirement(dependency)
-			if requirement.Engine {
-				if len(c.Version) > index {
-					requirement.Version = c.Version[index]
-				}
-			}
-			checkManager := managers[dependency.Manager].InitManager()
-			if checkManager != nil {
-				requirement.Errors = checkManager.Error()
-				result.Success = false
-			} else {
-				if !managers[dependency.Manager].IsInstalled(c, requirement) {
-					managerResult := managers[dependency.Manager].Install(c, requirement)
-					if len(managerResult) != 0 {
-						requirement.Errors = managerResult
-						result.Success = false
+	for _, engine := range context.Engine {
+		result := InitResult(context, engine)
+		for branchIndex, dependencyBranch := range engine.Deps.Dependencies {
+			for index, dependency := range dependencyBranch {
+				requirement := InitRequirement(dependency)
+				if requirement.Engine {
+					if len(context.Version) > index {
+						requirement.Version = context.Version[index]
 					}
 				}
+				if manager, ok := managers[dependency.Manager]; ok {
+					checkManager := manager.InitManager()
+					if checkManager != nil {
+						requirement.Errors = checkManager.Error()
+						result.Success = false
+					} else {
+						if !manager.IsInstalled(context, requirement) {
+							managerResult := manager.Install(context, requirement)
+							if len(managerResult) != 0 {
+								requirement.Errors = managerResult
+								result.Success = false
+							}
+						}
+					}
+				} else {
+					requirement.Errors = dependency.Manager + " is not supported"
+					result.Success = false
+				}
+				result.Requirements = append(result.Requirements, requirement)
 			}
-			result.Requirements = append(result.Requirements, requirement)
-
+			if result.Success {
+				break
+			} else if branchIndex < len(engine.Deps.Dependencies)-1 {
+				result = InitResult(context, engine)
+			}
 		}
 		results = append(results, result)
 	}

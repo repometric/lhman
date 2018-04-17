@@ -20,8 +20,8 @@ func (m NpmManager) Install(c Context, r Requirement) string {
 		packageFlag += "@" + r.Version
 	}
 	cmd := exec.Command(r.Manager, "install", globalFlag, packageFlag)
-	if len(c.Project) > 0 {
-		cmd.Dir = c.Project
+	if len(c.Folder) > 0 {
+		cmd.Dir = c.Folder
 	}
 
 	var stderr bytes.Buffer
@@ -41,12 +41,12 @@ func (m NpmManager) IsInstalled(c Context, r Requirement) bool {
 		globalFlag = "-g"
 	}
 	cmd := exec.Command(r.Manager, "list", globalFlag)
-	if len(c.Project) > 0 {
-		cmd.Dir = c.Project
+	if len(c.Folder) > 0 {
+		cmd.Dir = c.Folder
 	}
 	out, _ := cmd.Output()
 	reg, _ := regexp.Compile("\\s" + r.Package + "\\@" + r.Version)
-	return len(reg.FindStringIndex(string(out[:bytes.IndexByte(out, 0)]))) != 0
+	return len(reg.FindStringIndex(string(out[:len(out)]))) != 0
 }
 
 // InitManager function checks if the package manager is available

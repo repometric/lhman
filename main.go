@@ -78,14 +78,14 @@ func main() {
 			Action: func(c *cli.Context) error {
 				var context = install.Context{
 					Version:     c.StringSlice("version"),
-					Project:     c.String("project"),
+					Folder:      c.String("folder"),
 					Environment: c.String("environment"),
 				}
 
 				for _, engineName := range c.StringSlice("engine") {
 					for _, engine := range catalog.Get() {
 						if engine.Meta.Name == engineName || engine.Meta.ID == engineName {
-							context.Engine = append(context.Engine)
+							context.Engine = append(context.Engine, engine)
 						}
 					}
 				}
@@ -105,8 +105,8 @@ func main() {
 					Usage: "Engine version (latest version by default)",
 				},
 				cli.StringFlag{
-					Name:  "project,p",
-					Usage: "Project to associate with",
+					Name:  "folder,f",
+					Usage: "Folder path for local installation",
 				},
 				cli.StringFlag{
 					Name:  "environment,env",
