@@ -13,7 +13,7 @@ type Result struct {
 // InitResult function creates basic instance of Result for Engine
 func InitResult(c Context, e catalog.Engine) Result {
 	id := e.Meta.ID
-	if id == "" {
+	if len(id) == 0 {
 		id = e.Meta.Name
 	}
 	return Result{
