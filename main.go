@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/repometric/lhman/catalog"
@@ -11,13 +13,33 @@ import (
 	"github.com/urfave/cli"
 )
 
-// AppVersion is the version of lhman
-const AppVersion = "0.1.0"
+const appVersion = "0.1.1"
+const bundleURL = "https://repometric.github.io/linterhub/engine/bundle.json"
+
+func updateBundle() {
+	os.Mkdir("tmp", 0777)
+
+	client := &http.Client{}
+	request, _ := http.NewRequest(http.MethodHead, bundleURL, nil)
+	response, _ := client.Do(request)
+	lastModified := response.Header.Get("Last-Modified")
+
+	dat, _ := ioutil.ReadFile("tmp/last.dat")
+	lastModifiedLocal := string(dat)
+
+	if lastModified != lastModifiedLocal {
+		response, _ := http.Get("https://repometric.github.io/linterhub/engine/bundle.json")
+		body, _ := ioutil.ReadAll(response.Body)
+		ioutil.WriteFile("tmp/last.dat", []byte(lastModified), 0644)
+		ioutil.WriteFile("tmp/bundle.json", body, 0644)
+	}
+}
 
 func main() {
+	updateBundle()
 	app := cli.NewApp()
 
-	app.Version = AppVersion
+	app.Version = appVersion
 	app.Usage = "Linterhub Manager Core Component"
 	app.Commands = []cli.Command{
 		{
