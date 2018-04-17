@@ -104,16 +104,21 @@ func main() {
 					Environment: c.String("environment"),
 				}
 
-				for _, engineName := range c.StringSlice("engine") {
-					for _, engine := range catalog.Get() {
-						if engine.Meta.Name == engineName || engine.Meta.ID == engineName {
-							context.Engine = append(context.Engine, engine)
+				enginesArg := c.StringSlice("engine")
+
+				if len(enginesArg) == 0 {
+					cli.ShowCommandHelp(c, "install")
+				} else {
+					for _, engineName := range enginesArg {
+						for _, engine := range catalog.Get() {
+							if engine.Meta.Name == engineName || engine.Meta.ID == engineName {
+								context.Engine = append(context.Engine, engine)
+							}
 						}
 					}
+					res, _ := json.MarshalIndent(install.Run(context), "", "    ")
+					fmt.Println(string(res))
 				}
-
-				res, _ := json.MarshalIndent(install.Run(context), "", "    ")
-				fmt.Println(string(res))
 
 				return nil
 			},
