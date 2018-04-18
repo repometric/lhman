@@ -4,12 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
-	"path/filepath"
+	"strings"
 )
 
-const linterhub = "./linterhub/engine"
+const bundlePath = "tmp/bundle.json"
 
 // Catalog type represents array of engines
 type Catalog []Engine
@@ -18,32 +17,28 @@ type Catalog []Engine
 func Get() Catalog {
 	var result Catalog
 
-	dirs, err := ioutil.ReadDir(linterhub)
-	if err != nil {
-		log.Fatal(err)
+	bundleFile, e := ioutil.ReadFile(bundlePath)
+	if e != nil {
+		fmt.Printf("Catch error while reading bundle file: %v\n", e)
+		os.Exit(1)
 	}
 
-	for _, d := range dirs {
-		if d.IsDir() {
-			engineName := d.Name()
-			enginePath := filepath.Join(linterhub, engineName)
-			metaPath, _ := filepath.Abs(filepath.Join(enginePath, "meta.json"))
-			metaFile, e := ioutil.ReadFile(metaPath)
-			if e != nil {
-				fmt.Printf("Catch error while reading meta file: %v\n", e)
-				os.Exit(1)
-			}
-			depsPath, _ := filepath.Abs(filepath.Join(enginePath, "deps.json"))
-			depsFile, e := ioutil.ReadFile(depsPath)
-			if e != nil {
-				fmt.Printf("Catch error while reading meta file: %v\n", e)
-				os.Exit(1)
-			}
+	type byteArray []byte
+
+	var m = make(map[string]interface{})
+	if json.Unmarshal(bundleFile, &m) != nil {
+		fmt.Printf("Catch error while parsing bundle file.\n")
+		os.Exit(1)
+	}
+
+	for key, value := range m {
+		if !strings.Contains(key, "$") {
+			strB, _ := json.Marshal(value)
 			var engine Engine
-			json.Unmarshal(metaFile, &(engine.Meta))
-			json.Unmarshal(depsFile, &(engine.Deps))
+			json.Unmarshal(strB, &(engine))
 			result = append(result, engine)
 		}
 	}
+
 	return result
 }

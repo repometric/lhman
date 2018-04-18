@@ -11,14 +11,11 @@ do
     GOARCH=${platform_split[1]}
     output_name=$package_name'-'$GOOS'-'$GOARCH
 
-    filename=$package_name
     if [ $GOOS = "windows" ]; then
-        filename+='.exe'
+        output_name+='.exe'
     fi
 
-    mkdir -p ./build/$output_name/linterhub
-    cp -r ./linterhub/engine ./build/$output_name/linterhub
-    env GOOS=$GOOS GOARCH=$GOARCH go build -o build/$output_name/$filename
+    env GOOS=$GOOS GOARCH=$GOARCH go build -o build/$output_name
     if [ $? -ne 0 ]; then
         echo 'An error has occurred! Aborting the script execution...'
         exit 1
