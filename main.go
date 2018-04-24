@@ -13,7 +13,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-const appVersion = "0.2.0-alpha"
+const appVersion = "0.1.2"
 const bundleURL = "https://repometric.github.io/linterhub/engine/bundle.json"
 
 func updateBundle() {
@@ -54,8 +54,7 @@ func main() {
 				} else {
 					var (
 						engine = c.StringSlice("engine")
-						//project = c.String("project")
-						res []byte
+						res    []byte
 					)
 
 					var stringInSlice = func(a string, list []string) bool {
