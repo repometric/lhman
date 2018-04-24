@@ -8,13 +8,11 @@ import (
 	"strings"
 )
 
-const bundlePath = "tmp/bundle.json"
-
 // Catalog type represents array of engines
 type Catalog []Engine
 
 // Get function creates instance of catalog
-func Get() Catalog {
+func Get(bundlePath string) Catalog {
 	var result Catalog
 
 	bundleFile, e := ioutil.ReadFile(bundlePath)
