@@ -52,9 +52,8 @@ func main() {
 			Usage:   "This strategy generates list of engines using filters or specific keys and propose recommendations.",
 			Action: func(c *cli.Context) error {
 				if c.IsSet("version") {
-					dat, _ := ioutil.ReadFile("tmp/last.dat")
-					lastModifiedLocal := string(dat)
-					fmt.Println("Linterhub bundle: " + lastModifiedLocal)
+					info, _ := os.Stat(bundleFile)
+					fmt.Println("Linterhub bundle: " + info.ModTime().Format(time.RFC1123))
 				} else {
 					var (
 						engine = c.StringSlice("engine")
