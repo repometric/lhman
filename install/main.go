@@ -26,19 +26,24 @@ func Run(context Context) []Result {
 				if manager, ok := managers[dependency.Manager]; ok {
 					checkManager := manager.InitManager()
 					if checkManager != nil {
-						requirement.Errors = checkManager.Error()
+						requirement.Errors = append(requirement.Errors, checkManager.Error())
 						result.Success = false
 					} else {
 						if !manager.IsInstalled(context, requirement) {
 							managerResult := manager.Install(context, requirement)
-							if len(managerResult) != 0 {
-								requirement.Errors = managerResult
-								result.Success = false
+							for _, executeContext := range managerResult {
+								_, stderr := Execute(executeContext)
+								if len(stderr) != 0 {
+									requirement.Errors = append(requirement.Errors, stderr)
+									if requirement.Engine {
+										result.Success = manager.IsInstalled(context, requirement)
+									}
+								}
 							}
 						}
 					}
 				} else {
-					requirement.Errors = dependency.Manager + " is not supported"
+					requirement.Errors = append(requirement.Errors, dependency.Manager+" is not supported")
 					result.Success = false
 				}
 				result.Requirements = append(result.Requirements, requirement)
