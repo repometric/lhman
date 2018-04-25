@@ -26,11 +26,11 @@ func InitResult(c Context, e catalog.Engine) Result {
 
 // Requirement describes install result of engine's dependency
 type Requirement struct {
-	Manager string `json:"manager"`
-	Package string `json:"package"`
-	Version string `json:"version"`
-	Engine  bool   `json:"engine"`
-	Errors  string `json:"errors"`
+	Manager string   `json:"manager"`
+	Package string   `json:"package"`
+	Version string   `json:"version"`
+	Engine  bool     `json:"engine"`
+	Errors  []string `json:"errors"`
 }
 
 // InitRequirement function creates basic instance of Requirement

@@ -6,8 +6,8 @@ import "os/exec"
 type PlatformManager struct{}
 
 // Install function of PlatformManager installs global Requirements
-func (m PlatformManager) Install(c Context, r Requirement) string {
-	return "lhman cant install global packages like `" + r.Package + "`"
+func (m PlatformManager) Install(c Context, r Requirement) []ExecuteContext {
+	return []ExecuteContext{}
 }
 
 // IsInstalled function of PlatformManager ckecks global Requirements

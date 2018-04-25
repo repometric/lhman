@@ -3,7 +3,7 @@ package catalog
 // Deps structure describes engine dependencies
 type Deps struct {
 	// Engine id, case insensitive unique identifier, required only if the engine name is not unique
-	ID string `json:"id"`
+	ID string `json:"id,omitempty"`
 
 	// Case sensitive official engine name, may not be unique
 	Name string `json:"name"`

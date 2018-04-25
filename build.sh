@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 
 package_name="lhman"
-
+dependencies=("github.com/urfave/cli")
 platforms=("windows/amd64" "windows/386" "darwin/amd64" "darwin/386" "linux/386" "linux/amd64")
+
+for dependency in "${dependencies[@]}"
+do
+    go get ${dependency}
+done
 
 for platform in "${platforms[@]}"
 do

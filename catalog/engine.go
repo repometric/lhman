@@ -4,4 +4,5 @@ package catalog
 type Engine struct {
 	Meta Meta `json:"meta"`
 	Deps Deps `json:"deps"`
+	Args Args `json:"args"`
 }

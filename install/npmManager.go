@@ -9,27 +9,39 @@ import (
 type NpmManager struct{}
 
 // Install function of NpmManager installs npm dependencies
-func (NpmManager) Install(context Context, requirement Requirement) string {
-	globalFlag := ""
+func (NpmManager) Install(context Context, requirement Requirement) []ExecuteContext {
+	args := []string{"install"}
 	if context.Environment == "global" {
-		globalFlag = "-g"
+		args = append(args, "-g")
 	}
 	packageFlag := requirement.Package
 	if len(requirement.Version) > 0 {
 		packageFlag += "@" + requirement.Version
 	}
-	_, err := Execute(context, requirement.Manager, globalFlag, packageFlag)
+	args = append(args, packageFlag)
 
-	return err
+	return []ExecuteContext{
+		ExecuteContext{
+			Binary:           requirement.Manager,
+			WorkingDirectory: context.Folder,
+			Args:             args,
+		},
+	}
 }
 
 // IsInstalled function of NpmManager ckecks if npm dependency is installed
 func (NpmManager) IsInstalled(context Context, requirement Requirement) bool {
-	globalFlag := ""
+	args := []string{"list"}
 	if context.Environment == "global" {
-		globalFlag = "-g"
+		args = append(args, "-g")
 	}
-	out, _ := Execute(context, requirement.Manager, globalFlag)
+	out, _ := Execute(
+		ExecuteContext{
+			Binary:           requirement.Manager,
+			WorkingDirectory: context.Folder,
+			Args:             args,
+		},
+	)
 	reg, _ := regexp.Compile("\\s" + requirement.Package + "\\@" + requirement.Version)
 	return len(reg.FindStringIndex(out)) != 0
 }
