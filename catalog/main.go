@@ -4,39 +4,46 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
-	"strings"
+	"path"
 )
+
+const catalogFolder = "hub"
 
 // Catalog type represents array of engines
 type Catalog []Engine
 
 // Get function creates instance of catalog
-func Get(bundlePath string) Catalog {
+func Get() Catalog {
 	var result Catalog
 
-	bundleFile, e := ioutil.ReadFile(bundlePath)
+	folders, err := ioutil.ReadDir(catalogFolder)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, engineFolder := range folders {
+
+		engine := Engine{}
+		depsFilePath := path.Join(catalogFolder, engineFolder.Name(), "deps.json")
+		json.Unmarshal(readFile(depsFilePath), &engine.Deps)
+
+		metaFilePath := path.Join(catalogFolder, engineFolder.Name(), "meta.json")
+		json.Unmarshal(readFile(metaFilePath), &engine.Meta)
+
+		result = append(result, engine)
+	}
+
+	return result
+}
+
+//readFile - read file by path, and return []byte
+func readFile(path string) []byte {
+	result, e := ioutil.ReadFile(path)
 	if e != nil {
-		fmt.Printf("Catch error while reading bundle file: %v\n", e)
+		fmt.Printf("Catch error while reading file: %v\n", e)
 		os.Exit(1)
 	}
-
-	type byteArray []byte
-
-	var m = make(map[string]interface{})
-	if json.Unmarshal(bundleFile, &m) != nil {
-		fmt.Printf("Catch error while parsing bundle file.\n")
-		os.Exit(1)
-	}
-
-	for key, value := range m {
-		if !strings.Contains(key, "$") {
-			strB, _ := json.Marshal(value)
-			var engine Engine
-			json.Unmarshal(strB, &(engine))
-			result = append(result, engine)
-		}
-	}
-
 	return result
 }
