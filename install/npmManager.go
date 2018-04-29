@@ -10,7 +10,7 @@ type NpmManager struct{}
 
 // Install function of NpmManager installs npm dependencies
 func (NpmManager) Install(context Context, requirement Requirement) []ExecuteContext {
-	args := []string{"install"}
+	args := []string{"install", "--save"}
 	if context.Environment == "global" {
 		args = append(args, "-g")
 	}
