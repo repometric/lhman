@@ -28,7 +28,7 @@ func main() {
 
 				var (
 					engine = c.StringSlice("engine")
-					//project = c.String("project")
+					project = c.String("project")
 					res []byte
 				)
 
@@ -40,8 +40,13 @@ func main() {
 					}
 					return false
 				}
-
-				if len(engine) > 0 {
+				if project != "" {
+					engines := make([]catalog.Meta, 0)
+					for _, e := range catalog.Recommend(project) {
+						engines = append(engines, e.Meta)
+					}
+					res, _ = json.MarshalIndent(engines, "", "    ")
+				} else if len(engine) > 0 {
 					engines := make([]catalog.Engine, 0)
 					for _, v := range catalog.Get() {
 						if stringInSlice(v.Meta.Name, engine) {
