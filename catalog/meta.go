@@ -2,6 +2,9 @@ package catalog
 
 // Meta structure describes engine metadata used in linterhub
 type Meta struct {
+	//Recommendation for install, if this engine can be useful;
+	// Used by catalog --project strategy
+	Recommendation string `json:"Recommendation,omitempty"`
 	// Engine id, case insensitive unique identifier, required only if the engine name is not unique
 	ID string `json:"id,omitempty"`
 
