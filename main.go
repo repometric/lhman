@@ -3,11 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
-	"time"
 
 	"github.com/repometric/lhman/catalog"
 	"github.com/repometric/lhman/install"
@@ -15,32 +12,9 @@ import (
 )
 
 const appVersion = "0.1.2"
-const bundleURL = "https://repometric.github.io/linterhub/engine/bundle.json"
-const bundleFile = "bundle.json"
-
-func updateBundle() {
-
-	client := &http.Client{}
-	request, _ := http.NewRequest(http.MethodHead, bundleURL, nil)
-	response, _ := client.Do(request)
-	lastModified, _ := time.Parse(time.RFC1123, response.Header.Get("Last-Modified"))
-
-	info, err := os.Stat(bundleFile)
-	lastModifiedLocal := time.Now()
-	if err == nil {
-		lastModifiedLocal = info.ModTime()
-	}
-
-	if lastModified.Unix() != lastModifiedLocal.Unix() {
-		response, _ := http.Get(bundleURL)
-		body, _ := ioutil.ReadAll(response.Body)
-		ioutil.WriteFile(bundleFile, body, 0644)
-		os.Chtimes(bundleFile, lastModified, lastModified)
-	}
-}
 
 func main() {
-	updateBundle()
+
 	app := cli.NewApp()
 
 	app.Version = appVersion
@@ -51,42 +25,39 @@ func main() {
 			Aliases: []string{"c"},
 			Usage:   "This strategy generates list of engines using filters or specific keys and propose recommendations.",
 			Action: func(c *cli.Context) error {
-				if c.IsSet("version") {
-					info, _ := os.Stat(bundleFile)
-					fmt.Println("Linterhub bundle: " + info.ModTime().Format(time.RFC1123))
-				} else {
-					var (
-						engine = c.StringSlice("engine")
-						res    []byte
-					)
 
-					var stringInSlice = func(a string, list []string) bool {
-						for _, b := range list {
-							if b == a {
-								return true
-							}
+				var (
+					engine = c.StringSlice("engine")
+					//project = c.String("project")
+					res []byte
+				)
+
+				var stringInSlice = func(a string, list []string) bool {
+					for _, b := range list {
+						if b == a {
+							return true
 						}
-						return false
 					}
-
-					if len(engine) > 0 {
-						engines := make([]catalog.Engine, 0)
-						for _, v := range catalog.Get(bundleFile) {
-							if stringInSlice(v.Meta.Name, engine) {
-								engines = append(engines, v)
-							}
-						}
-						res, _ = json.MarshalIndent(engines, "", "    ")
-					} else {
-						engines := make([]catalog.Meta, 0)
-						for _, e := range catalog.Get(bundleFile) {
-							engines = append(engines, e.Meta)
-						}
-						res, _ = json.MarshalIndent(engines, "", "    ")
-					}
-
-					fmt.Println(string(res))
+					return false
 				}
+
+				if len(engine) > 0 {
+					engines := make([]catalog.Engine, 0)
+					for _, v := range catalog.Get() {
+						if stringInSlice(v.Meta.Name, engine) {
+							engines = append(engines, v)
+						}
+					}
+					res, _ = json.MarshalIndent(engines, "", "    ")
+				} else {
+					engines := make([]catalog.Meta, 0)
+					for _, e := range catalog.Get() {
+						engines = append(engines, e.Meta)
+					}
+					res, _ = json.MarshalIndent(engines, "", "    ")
+				}
+
+				fmt.Println(string(res))
 				return nil
 			},
 			Flags: []cli.Flag{
@@ -97,10 +68,6 @@ func main() {
 				cli.StringFlag{
 					Name:  "project,p",
 					Usage: "Project path to return list of recommended for installing engines",
-				},
-				cli.BoolFlag{
-					Name:  "version,v",
-					Usage: "Show bundle version",
 				},
 			},
 		},
@@ -121,7 +88,7 @@ func main() {
 					cli.ShowCommandHelp(c, "install")
 				} else {
 					for _, engineName := range enginesArg {
-						for _, engine := range catalog.Get(bundleFile) {
+						for _, engine := range catalog.Get() {
 							if engine.Meta.Name == engineName || engine.Meta.ID == engineName {
 								context.Engine = append(context.Engine, engine)
 							}
